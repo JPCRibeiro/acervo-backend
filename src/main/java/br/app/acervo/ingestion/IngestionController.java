@@ -25,9 +25,9 @@ public class IngestionController {
             @RequestParam("tenantId") UUID tenantId) throws IOException {
 
         String fileName = Optional.ofNullable(file.getOriginalFilename()).orElse("unknown");
-        int chunks = service.ingest(tenantId, file, fileName);
+        IngestionResult result = service.ingest(tenantId, file, fileName);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new IngestionResponse(fileName, chunks));
+                .body(new IngestionResponse(fileName, result.chunkCount()));
     }
 }

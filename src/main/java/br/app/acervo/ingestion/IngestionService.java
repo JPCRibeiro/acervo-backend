@@ -16,19 +16,22 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class IngestionService {
     private final VectorStore vectorStore;
+    private final StorageService storageService;
     private final TokenTextSplitter splitter = TokenTextSplitter.builder().build();
 
-    public int ingest(UUID tenantId, MultipartFile file, String fileName) throws IOException {
+    public IngestionResult ingest(UUID tenantId, MultipartFile file, String fileName) throws IOException {
+        String s3Key = storageService.upload(tenantId, file, fileName);
         List<Document> extracted = new TikaDocumentReader(file.getResource()).read();
         List<Document> chunks = splitter.split(extracted);
 
         chunks.forEach(chunk -> {
             chunk.getMetadata().put("source", fileName);
             chunk.getMetadata().put("tenantId", tenantId.toString());
+            chunk.getMetadata().put("s3Key", s3Key);
         });
 
         vectorStore.write(chunks);
 
-        return chunks.size();
+        return new IngestionResult(s3Key, chunks.size());
     }
 }
