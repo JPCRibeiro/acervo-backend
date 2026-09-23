@@ -10,7 +10,7 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:dev}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
     show-sql: true
   ai:
@@ -27,7 +27,7 @@ spring:
         model: text-embedding-3-small
     vectorstore:
       pgvector:
-        initialize-schema: true
+        initialize-schema: false
         dimensions: 1536
         index-type: HNSW
         distance-type: COSINE_DISTANCE
