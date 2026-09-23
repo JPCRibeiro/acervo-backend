@@ -28,6 +28,6 @@ public class IngestionController {
         IngestionResult result = service.ingest(tenantId, file, fileName);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new IngestionResponse(fileName, result.chunkCount()));
+                .body(new IngestionResponse(result.documentId(), fileName, result.chunkCount()));
     }
 }
