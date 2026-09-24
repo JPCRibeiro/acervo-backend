@@ -1,5 +1,6 @@
 package br.app.acervo.shared.exception;
 
+import br.app.acervo.document.exception.DocumentNotFoundException;
 import br.app.acervo.ingestion.exception.IngestionException;
 import br.app.acervo.ingestion.exception.UnsupportedFileTypeException;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,11 @@ public class GlobalExceptionHandler {
             String error,
             List<ErrorField> fieldErrors
     ) {}
+
+    @ExceptionHandler(DocumentNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleDocumentNotFound(Exception ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
 
     @ExceptionHandler(UnsupportedFileTypeException.class)
     public ResponseEntity<ErrorResponse>  handleUnsupportedType(UnsupportedFileTypeException ex) {

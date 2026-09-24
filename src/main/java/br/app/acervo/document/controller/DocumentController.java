@@ -2,6 +2,7 @@ package br.app.acervo.document.controller;
 
 import br.app.acervo.document.dto.DocumentStatusResponse;
 import br.app.acervo.document.repository.DocumentRepository;
+import br.app.acervo.document.service.DocumentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,14 +16,10 @@ import java.util.UUID;
 @RequestMapping("/api/documents")
 @RequiredArgsConstructor
 public class DocumentController {
-    private final DocumentRepository documentRepository;
+    private final DocumentService service;
 
     @GetMapping("/{id}")
     public ResponseEntity<DocumentStatusResponse> getStatus(@PathVariable UUID id) {
-        return documentRepository.findById(id)
-                .map(doc -> ResponseEntity.ok(new DocumentStatusResponse(
-                        doc.getId(), doc.getFileName(), doc.getStatus(),
-                        doc.getChunkCount(), doc.getFailureReason())))
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(service.getDocumentStatus(id));
     }
 }
