@@ -1,4 +1,4 @@
-package br.app.acervo.ingestion;
+package br.app.acervo.ingestion.service;
 
 import br.app.acervo.document.domain.Document;
 import br.app.acervo.document.repository.DocumentRepository;

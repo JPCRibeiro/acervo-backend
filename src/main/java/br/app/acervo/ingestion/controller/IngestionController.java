@@ -1,6 +1,8 @@
-package br.app.acervo.ingestion;
+package br.app.acervo.ingestion.controller;
 
 import br.app.acervo.document.domain.DocumentStatus;
+import br.app.acervo.ingestion.dto.IngestionResponse;
+import br.app.acervo.ingestion.service.IngestionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

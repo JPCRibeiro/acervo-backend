@@ -1,7 +1,7 @@
 package br.app.acervo;
 
-import br.app.acervo.ingestion.FileTypeValidator;
-import br.app.acervo.ingestion.UnsupportedFileTypeException;
+import br.app.acervo.ingestion.service.FileTypeValidator;
+import br.app.acervo.ingestion.exception.UnsupportedFileTypeException;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 

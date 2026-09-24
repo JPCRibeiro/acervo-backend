@@ -1,7 +1,10 @@
 package br.app.acervo;
 
 import br.app.acervo.document.repository.DocumentRepository;
-import br.app.acervo.ingestion.*;
+import br.app.acervo.ingestion.service.DocumentProcessor;
+import br.app.acervo.ingestion.service.FileTypeValidator;
+import br.app.acervo.ingestion.service.IngestionService;
+import br.app.acervo.ingestion.service.StorageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,9 +23,11 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class IngestionServiceTest {
 
-    @Mock StorageService storageService;
+    @Mock
+    StorageService storageService;
     @Mock DocumentRepository documentRepository;
-    @Mock FileTypeValidator fileTypeValidator;
+    @Mock
+    FileTypeValidator fileTypeValidator;
     @Mock
     DocumentProcessor documentProcessor;
 

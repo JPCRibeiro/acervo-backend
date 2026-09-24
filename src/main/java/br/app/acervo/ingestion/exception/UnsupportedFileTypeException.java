@@ -1,4 +1,4 @@
-package br.app.acervo.ingestion;
+package br.app.acervo.ingestion.exception;
 
 public class UnsupportedFileTypeException extends RuntimeException {
     public UnsupportedFileTypeException(String detectedType) {

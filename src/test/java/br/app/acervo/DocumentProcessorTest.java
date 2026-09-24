@@ -2,7 +2,7 @@ package br.app.acervo;
 
 import br.app.acervo.document.domain.DocumentStatus;
 import br.app.acervo.document.repository.DocumentRepository;
-import br.app.acervo.ingestion.*;
+import br.app.acervo.ingestion.service.DocumentProcessor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

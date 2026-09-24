@@ -1,5 +1,6 @@
-package br.app.acervo.ingestion;
+package br.app.acervo.ingestion.service;
 
+import br.app.acervo.ingestion.exception.UnsupportedFileTypeException;
 import org.apache.tika.Tika;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;

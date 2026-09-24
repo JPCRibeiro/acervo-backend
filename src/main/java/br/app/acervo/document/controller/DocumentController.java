@@ -1,5 +1,6 @@
-package br.app.acervo.document;
+package br.app.acervo.document.controller;
 
+import br.app.acervo.document.dto.DocumentStatusResponse;
 import br.app.acervo.document.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

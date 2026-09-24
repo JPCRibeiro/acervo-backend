@@ -1,4 +1,4 @@
-package br.app.acervo.ingestion;
+package br.app.acervo.ingestion.service;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;

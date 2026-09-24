@@ -1,4 +1,4 @@
-package br.app.acervo.ingestion;
+package br.app.acervo.ingestion.dto;
 
 import br.app.acervo.document.domain.DocumentStatus;
 

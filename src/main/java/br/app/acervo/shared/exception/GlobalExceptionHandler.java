@@ -1,7 +1,7 @@
-package br.app.acervo.shared;
+package br.app.acervo.shared.exception;
 
-import br.app.acervo.ingestion.IngestionException;
-import br.app.acervo.ingestion.UnsupportedFileTypeException;
+import br.app.acervo.ingestion.exception.IngestionException;
+import br.app.acervo.ingestion.exception.UnsupportedFileTypeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
