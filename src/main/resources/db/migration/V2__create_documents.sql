@@ -1,6 +1,6 @@
 CREATE TABLE documents (
     id             UUID         PRIMARY KEY,
-    tenant_id      UUID         NOT NULL,
+    organization_id      UUID         NOT NULL,
     file_name      VARCHAR(255) NOT NULL,
     s3_key         VARCHAR(255) NOT NULL,
     status         VARCHAR(255) NOT NULL,
@@ -9,4 +9,4 @@ CREATE TABLE documents (
     uploaded_at    TIMESTAMP(6) WITH TIME ZONE NOT NULL
 );
 
-CREATE INDEX idx_documents_tenant_id ON documents (tenant_id);
+CREATE INDEX idx_documents_organization_id ON documents (organization_id);

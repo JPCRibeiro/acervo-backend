@@ -29,8 +29,8 @@ public class DocumentProcessorTest {
     @InjectMocks
     DocumentProcessor documentProcessor;
 
-    private br.app.acervo.document.domain.Document pendingDocument(UUID id, UUID tenantId) {
-        var doc = br.app.acervo.document.domain.Document.create(tenantId, "notas.txt", "fake-s3-key");
+    private br.app.acervo.document.domain.Document pendingDocument(UUID id, UUID organizationId) {
+        var doc = br.app.acervo.document.domain.Document.create(organizationId, "notas.txt", "fake-s3-key");
         ReflectionTestUtils.setField(doc, "id", id);
         return doc;
     }
@@ -38,11 +38,11 @@ public class DocumentProcessorTest {
     @Test
     void shouldEnrichMetadataAndMarkReady() {
         UUID docId = UUID.randomUUID();
-        UUID tenantId = UUID.randomUUID();
-        var document = pendingDocument(docId, tenantId);
+        UUID organizationId = UUID.randomUUID();
+        var document = pendingDocument(docId, organizationId);
         when(documentRepository.findById(docId)).thenReturn(Optional.of(document));
 
-        documentProcessor.process(docId, tenantId,
+        documentProcessor.process(docId, organizationId,
                 "conteúdo de teste".getBytes(), "notas.txt", "fake-s3-key");
 
         @SuppressWarnings("unchecked")
@@ -50,7 +50,7 @@ public class DocumentProcessorTest {
         verify(vectorStore).write(captor.capture());
 
         assertThat(captor.getValue()).allSatisfy(chunk -> {
-            assertThat(chunk.getMetadata()).containsEntry("tenantId", tenantId.toString());
+            assertThat(chunk.getMetadata()).containsEntry("organizationId", organizationId.toString());
             assertThat(chunk.getMetadata()).containsEntry("source", "notas.txt");
             assertThat(chunk.getMetadata()).containsEntry("s3Key", "fake-s3-key");
             assertThat(chunk.getMetadata()).containsEntry("documentId", docId.toString());
@@ -61,13 +61,13 @@ public class DocumentProcessorTest {
     @Test
     void shouldMarkFailedWhenVectorStoreThrows() {
         UUID docId = UUID.randomUUID();
-        UUID tenantId = UUID.randomUUID();
-        var document = pendingDocument(docId, tenantId);
+        UUID organizationId = UUID.randomUUID();
+        var document = pendingDocument(docId, organizationId);
         when(documentRepository.findById(docId)).thenReturn(Optional.of(document));
         doThrow(new RuntimeException("Timeout na OpenAI")).when(vectorStore).write(anyList());
 
         // o processor NÃO relança — ele captura e marca FAILED (é async, ninguém pega a exceção)
-        documentProcessor.process(docId, tenantId,
+        documentProcessor.process(docId, organizationId,
                 "conteúdo".getBytes(), "notas.txt", "fake-s3-key");
 
         assertThat(document.getStatus()).isEqualTo(DocumentStatus.FAILED);

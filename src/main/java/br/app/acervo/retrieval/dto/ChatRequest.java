@@ -4,5 +4,5 @@ import java.util.UUID;
 
 public record ChatRequest(
         String question,
-        UUID tenantId
+        UUID organizationId
 ) {}

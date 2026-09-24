@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class DocumentTest {
     private Document pendingDocument() {
-        return Document.create(UUID.randomUUID(), "file.pdf", "tenant/file.pdf");
+        return Document.create(UUID.randomUUID(), "file.pdf", "organization/file.pdf");
     }
 
     @Test

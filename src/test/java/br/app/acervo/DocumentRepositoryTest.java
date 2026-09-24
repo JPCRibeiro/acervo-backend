@@ -25,7 +25,7 @@ public class DocumentRepositoryTest {
 
     @Test
     void shouldSaveGenerateVersion7IdAndRetrieveDocument() {
-        Document doc = Document.create(UUID.randomUUID(), "relatorio.pdf", "tenant/relatorio.pdf");
+        Document doc = Document.create(UUID.randomUUID(), "relatorio.pdf", "organization/relatorio.pdf");
 
         Document saved = repository.save(doc);
 

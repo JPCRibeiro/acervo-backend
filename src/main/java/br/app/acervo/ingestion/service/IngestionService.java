@@ -17,17 +17,17 @@ public class IngestionService {
     private final FileTypeValidator fileTypeValidator;
     private final DocumentProcessor documentProcessor;
 
-    public UUID ingest(UUID tenantId, MultipartFile file, String fileName) throws IOException {
+    public UUID ingest(UUID organizationId, MultipartFile file, String fileName) throws IOException {
         fileTypeValidator.validate(file);
 
-        String s3Key = storageService.upload(tenantId, file, fileName);
+        String s3Key = storageService.upload(organizationId, file, fileName);
 
-        Document document = Document.create(tenantId, fileName, s3Key);
+        Document document = Document.create(organizationId, fileName, s3Key);
         documentRepository.save(document);
 
         byte[] fileBytes = file.getBytes();
 
-        documentProcessor.process(document.getId(), tenantId, fileBytes, fileName, s3Key);
+        documentProcessor.process(document.getId(), organizationId, fileBytes, fileName, s3Key);
 
         return document.getId();
     }

@@ -25,10 +25,10 @@ public class IngestionController {
     @PostMapping
     public ResponseEntity<IngestionResponse> upload(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("tenantId") UUID tenantId) throws IOException {
+            @RequestParam("organizationId") UUID organizationId) throws IOException {
 
         String fileName = Optional.ofNullable(file.getOriginalFilename()).orElse("unknown");
-        UUID documentId = service.ingest(tenantId, file, fileName);
+        UUID documentId = service.ingest(organizationId, file, fileName);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(new IngestionResponse(documentId, fileName, DocumentStatus.PENDING));

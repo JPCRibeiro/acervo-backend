@@ -23,7 +23,7 @@ public class DocumentProcessor {
     private final TokenTextSplitter splitter = TokenTextSplitter.builder().build();
 
     @Async("ingestionExecutor")
-    public void process(UUID documentId, UUID tenantId, byte[] fileBytes, String fileName, String s3Key) {
+    public void process(UUID documentId, UUID organizationId, byte[] fileBytes, String fileName, String s3Key) {
         br.app.acervo.document.domain.Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new IllegalStateException("Documento não encontrado na base de dados"));
 
@@ -36,7 +36,7 @@ public class DocumentProcessor {
 
             chunks.forEach(chunk -> {
                 chunk.getMetadata().put("source", fileName);
-                chunk.getMetadata().put("tenantId", tenantId.toString());
+                chunk.getMetadata().put("organizationId", organizationId.toString());
                 chunk.getMetadata().put("s3Key", s3Key);
                 chunk.getMetadata().put("documentId", documentId.toString());
             });

@@ -21,12 +21,12 @@ public class RetrievalController {
 
     @PostMapping
     public ResponseEntity<ChatResponse> ask(@RequestBody ChatRequest req) {
-        ChatResponse response = service.ask(req.tenantId(), req.question());
+        ChatResponse response = service.ask(req.organizationId(), req.question());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChatStreamResponse> askStream(@RequestBody ChatRequest req) {
-        return service.askStream(req.tenantId(), req.question());
+        return service.askStream(req.organizationId(), req.question());
     }
 }

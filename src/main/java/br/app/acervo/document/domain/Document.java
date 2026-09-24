@@ -19,8 +19,8 @@ public class Document {
     @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
     private UUID id;
 
-    @Column(name="tenant_id", nullable = false, updatable = false)
-    private UUID tenantId;
+    @Column(name="organization_id", nullable = false, updatable = false)
+    private UUID organizationId;
 
     @Column(name = "file_name", nullable = false, updatable = false)
     private String fileName;
@@ -41,8 +41,8 @@ public class Document {
     @Column(name = "uploaded_at", nullable = false, updatable = false)
     private Instant uploadedAt;
 
-    private Document(UUID tenantId, String fileName, String s3Key) {
-        this.tenantId = tenantId;
+    private Document(UUID organizationId, String fileName, String s3Key) {
+        this.organizationId = organizationId;
         this.fileName = fileName;
         this.s3Key = s3Key;
         this.status = DocumentStatus.PENDING;
@@ -50,9 +50,9 @@ public class Document {
         this.uploadedAt = Instant.now();
     }
 
-    public static Document create(UUID tenantId, String fileName, String s3Key) {
-        if (tenantId == null) {
-            throw new IllegalArgumentException("tenantId é obrigatório");
+    public static Document create(UUID organizationId, String fileName, String s3Key) {
+        if (organizationId == null) {
+            throw new IllegalArgumentException("organizationId é obrigatório");
         }
         if (fileName == null || fileName.isBlank()) {
             throw new IllegalArgumentException("fileName é obrigatório");
@@ -60,7 +60,7 @@ public class Document {
         if (s3Key == null || s3Key.isBlank()) {
             throw new IllegalArgumentException("s3Key é obrigatória");
         }
-        return new Document(tenantId, fileName, s3Key);
+        return new Document(organizationId, fileName, s3Key);
     }
 
     public void startProcessing() {

@@ -25,8 +25,8 @@ public class StorageService {
     @Value("${aws.s3.bucket-name}")
     private String bucketName;
 
-    public String upload(UUID tenantId, MultipartFile file, String fileName) throws IOException {
-        String key = tenantId.toString() + "/" + UuidCreator.getTimeOrderedEpoch() + "-" + fileName;
+    public String upload(UUID organizationId, MultipartFile file, String fileName) throws IOException {
+        String key = organizationId.toString() + "/" + UuidCreator.getTimeOrderedEpoch() + "-" + fileName;
 
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)

@@ -28,8 +28,8 @@ public class RetrievalService {
 
     private record TempSource(UUID documentId, String fileName, String s3Key) {}
 
-    public ChatResponse ask(UUID tenantId, String question) {
-        var qaAdvisor = buildAdvisor(tenantId);
+    public ChatResponse ask(UUID organizationId, String question) {
+        var qaAdvisor = buildAdvisor(organizationId);
 
         var response = ragChatClient
                 .prompt()
@@ -47,10 +47,10 @@ public class RetrievalService {
         return new ChatResponse(answer, buildCitations(retrieved));
     }
 
-    public Flux<ChatStreamResponse> askStream(UUID tenantId, String question) {
+    public Flux<ChatStreamResponse> askStream(UUID organizationId, String question) {
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(question)
-                .filterExpression("tenantId == '" + tenantId + "'")
+                .filterExpression("organizationId == '" + organizationId + "'")
                 .topK(5)
                 .similarityThreshold(0.2)
                 .build();
@@ -75,10 +75,10 @@ public class RetrievalService {
                 ));
     }
 
-    private QuestionAnswerAdvisor buildAdvisor(UUID tenantId) {
+    private QuestionAnswerAdvisor buildAdvisor(UUID organizationId) {
         return QuestionAnswerAdvisor.builder(vectorStore)
                 .searchRequest(SearchRequest.builder()
-                        .filterExpression("tenantId == '" + tenantId + "'")
+                        .filterExpression("organizationId == '" + organizationId + "'")
                         .topK(5)
                         .similarityThreshold(0.2)
                         .build())

@@ -36,7 +36,7 @@ public class IngestionServiceTest {
 
     @Test
     void shouldStoreValidateCreateDocumentAndDispatchProcessing() throws IOException {
-        UUID tenantId = UUID.randomUUID();
+        UUID organizationId = UUID.randomUUID();
         UUID fakeId = UUID.randomUUID();
 
         when(storageService.upload(any(), any(), any())).thenReturn("fake-s3-key");
@@ -51,12 +51,12 @@ public class IngestionServiceTest {
                 "file", "notas.txt", "text/plain",
                 "conteúdo de teste".getBytes());
 
-        UUID resultId = ingestionService.ingest(tenantId, file, "notas.txt");
+        UUID resultId = ingestionService.ingest(organizationId, file, "notas.txt");
 
         verify(fileTypeValidator).validate(file);
-        verify(storageService).upload(tenantId, file, "notas.txt");
+        verify(storageService).upload(organizationId, file, "notas.txt");
         verify(documentRepository).save(any(br.app.acervo.document.domain.Document.class));
-        verify(documentProcessor).process(eq(fakeId), eq(tenantId), any(byte[].class), eq("notas.txt"), eq("fake-s3-key"));
+        verify(documentProcessor).process(eq(fakeId), eq(organizationId), any(byte[].class), eq("notas.txt"), eq("fake-s3-key"));
         assertThat(resultId).isEqualTo(fakeId);
     }
 }
