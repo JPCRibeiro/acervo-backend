@@ -1,5 +1,6 @@
 package br.app.acervo.ingestion;
 
+import br.app.acervo.document.domain.DocumentStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +26,9 @@ public class IngestionController {
             @RequestParam("tenantId") UUID tenantId) throws IOException {
 
         String fileName = Optional.ofNullable(file.getOriginalFilename()).orElse("unknown");
-        IngestionResult result = service.ingest(tenantId, file, fileName);
+        UUID documentId = service.ingest(tenantId, file, fileName);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new IngestionResponse(result.documentId(), fileName, result.chunkCount()));
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(new IngestionResponse(documentId, fileName, DocumentStatus.PENDING));
     }
 }

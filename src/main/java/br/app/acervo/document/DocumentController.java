@@ -1,0 +1,27 @@
+package br.app.acervo.document;
+
+import br.app.acervo.document.repository.DocumentRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping("/api/documents")
+@RequiredArgsConstructor
+public class DocumentController {
+    private final DocumentRepository documentRepository;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DocumentStatusResponse> getStatus(@PathVariable UUID id) {
+        return documentRepository.findById(id)
+                .map(doc -> ResponseEntity.ok(new DocumentStatusResponse(
+                        doc.getId(), doc.getFileName(), doc.getStatus(),
+                        doc.getChunkCount(), doc.getFailureReason())))
+                .orElse(ResponseEntity.notFound().build());
+    }
+}
