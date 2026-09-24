@@ -31,6 +31,9 @@ spring:
         dimensions: 1536
         index-type: HNSW
         distance-type: COSINE_DISTANCE
+  threads:
+    virtual:
+      enabled: true
 
 aws:
   s3:
