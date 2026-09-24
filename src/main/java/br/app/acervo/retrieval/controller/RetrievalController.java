@@ -18,7 +18,7 @@ public class RetrievalController {
 
     @PostMapping
     public ResponseEntity<ChatResponse> ask(@RequestBody ChatRequest req) {
-        String answer = service.ask(req.tenantId(), req.question());
-        return ResponseEntity.ok(new ChatResponse(answer));
+        ChatResponse response = service.ask(req.tenantId(), req.question());
+        return ResponseEntity.ok(response);
     }
 }
