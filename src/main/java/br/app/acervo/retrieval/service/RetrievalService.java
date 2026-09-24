@@ -1,5 +1,6 @@
 package br.app.acervo.retrieval.service;
 
+import br.app.acervo.ingestion.service.StorageService;
 import br.app.acervo.retrieval.dto.ChatResponse;
 import br.app.acervo.retrieval.dto.SourceCitation;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +20,16 @@ import java.util.UUID;
 public class RetrievalService {
     private final ChatClient ragChatClient;
     private final VectorStore vectorStore;
+    private final StorageService storageService;
+
+    private record TempSource(UUID documentId, String fileName, String s3Key) {}
 
     public ChatResponse ask(UUID tenantId, String question) {
         var qaAdvisor = QuestionAnswerAdvisor.builder(vectorStore)
                 .searchRequest(SearchRequest.builder()
                         .filterExpression("tenantId == '" + tenantId + "'")
                         .topK(5)
-                        .similarityThreshold(0.3)
+                        .similarityThreshold(0.2)
                         .build())
                 .build();
 
@@ -34,7 +38,6 @@ public class RetrievalService {
                 .user(question)
                 .call()
                 .chatResponse();
-
 
         String answer = response.getResult().getOutput().getText();
 
@@ -55,9 +58,15 @@ public class RetrievalService {
                     String fileName = Optional.ofNullable(meta.get("source"))
                             .map(Object::toString)
                             .orElse("unknown");
-                    return new SourceCitation(documentId, fileName);
+                    String s3Key = Optional.ofNullable(meta.get("s3Key"))
+                            .map(Object::toString).orElse(null);
+                    return new TempSource(documentId, fileName, s3Key);
                 })
                 .distinct()
+                .map(temp -> {
+                    String url = (temp.s3Key != null) ? storageService.generatePresignedUrl(temp.s3Key) : null;
+                    return new SourceCitation(temp.documentId(), temp.fileName(), url);
+                })
                 .toList();
 
         return new ChatResponse(answer, sources);

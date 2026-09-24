@@ -4,5 +4,6 @@ import java.util.UUID;
 
 public record SourceCitation(
         UUID documentId,
-        String fileName
+        String fileName,
+        String url
 ) {}
