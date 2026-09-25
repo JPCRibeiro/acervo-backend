@@ -5,6 +5,7 @@ import br.app.acervo.retrieval.dto.ChatResponse;
 import br.app.acervo.retrieval.dto.ChatStreamResponse;
 import br.app.acervo.retrieval.service.RetrievalService;
 import br.app.acervo.shared.security.AuthenticatedOrganization;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,14 +26,14 @@ public class RetrievalController {
     private final RetrievalService service;
 
     @PostMapping
-    public ResponseEntity<ChatResponse> ask(@RequestBody ChatRequest req,
+    public ResponseEntity<ChatResponse> ask(@Valid @RequestBody ChatRequest req,
                                             @AuthenticationPrincipal Jwt jwt) {
         UUID organizationId = AuthenticatedOrganization.id(jwt);
         return ResponseEntity.ok(service.ask(organizationId, req.question()));
     }
 
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ChatStreamResponse> askStream(@RequestBody ChatRequest req,
+    public Flux<ChatStreamResponse> askStream(@Valid @RequestBody ChatRequest req,
                                               @AuthenticationPrincipal Jwt jwt) {
         UUID organizationId = AuthenticatedOrganization.id(jwt);
         return service.askStream(organizationId, req.question());
