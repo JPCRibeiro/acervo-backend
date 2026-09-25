@@ -33,8 +33,11 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public User authenticate(String email, String rawPassword) {
-        User user = userRepository.findByEmail(email)
+        String normalizedEmail = email.toLowerCase().trim();
+
+        User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(InvalidCredentialsException::new);
+
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
             throw new InvalidCredentialsException();
         }
