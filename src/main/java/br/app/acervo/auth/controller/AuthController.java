@@ -1,6 +1,8 @@
 package br.app.acervo.auth.controller;
 
 import br.app.acervo.auth.dto.AccessTokenResponse;
+import br.app.acervo.auth.dto.JoinRequest;
+import br.app.acervo.auth.dto.LoginRequest;
 import br.app.acervo.auth.dto.RegisterRequest;
 import br.app.acervo.auth.service.AuthService;
 import jakarta.validation.Valid;
@@ -21,5 +23,15 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AccessTokenResponse> register(@Valid @RequestBody RegisterRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.register(req));
+    }
+
+    @PostMapping("/join")
+    public ResponseEntity<AccessTokenResponse> join(@Valid @RequestBody JoinRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.join(req));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AccessTokenResponse> login(@Valid @RequestBody LoginRequest req) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.login(req));
     }
 }

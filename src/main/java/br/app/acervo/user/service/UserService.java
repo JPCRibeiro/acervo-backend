@@ -3,6 +3,7 @@ package br.app.acervo.user.service;
 import br.app.acervo.user.domain.Role;
 import br.app.acervo.user.domain.User;
 import br.app.acervo.user.exception.EmailAlreadyExistsException;
+import br.app.acervo.user.exception.InvalidCredentialsException;
 import br.app.acervo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,13 +27,18 @@ public class UserService {
         }
 
         return userRepository.save(
-                User.create(
-                        organizationId,
-                        normalizedEmail,
-                        passwordEncoder.encode(rawPassword),
-                        name.trim(),
-                        role
-                )
+                User.create(organizationId, normalizedEmail, passwordEncoder.encode(rawPassword), name.trim(), role)
         );
+    }
+
+    @Transactional
+    public User authenticate(String email, String rawPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(InvalidCredentialsException::new);
+        if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
+            throw new InvalidCredentialsException();
+        }
+
+        return user;
     }
 }

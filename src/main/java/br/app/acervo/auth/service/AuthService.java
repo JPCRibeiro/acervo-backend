@@ -1,6 +1,8 @@
 package br.app.acervo.auth.service;
 
 import br.app.acervo.auth.dto.AccessTokenResponse;
+import br.app.acervo.auth.dto.JoinRequest;
+import br.app.acervo.auth.dto.LoginRequest;
 import br.app.acervo.auth.dto.RegisterRequest;
 import br.app.acervo.organization.domain.Organization;
 import br.app.acervo.organization.service.OrganizationService;
@@ -21,14 +23,23 @@ public class AuthService {
     @Transactional
     public AccessTokenResponse register(RegisterRequest req) {
         Organization organization = organizationService.create(req.organizationName());
-        User user = userService.create(
-                organization.getId(),
-                req.email(),
-                req.password(),
-                req.name(),
-                Role.OWNER
-        );
+        User user = userService.create(organization.getId(), req.email(), req.password(), req.name(), Role.OWNER);
 
+        return issueToken(user);
+    }
+
+    @Transactional
+    public AccessTokenResponse join(JoinRequest req) {
+        Organization organization = organizationService.getByInviteCode(req.inviteCode());
+        User user = userService.create(
+                organization.getId(), req.email(), req.password(), req.name(), Role.MEMBER
+        );
+        return issueToken(user);
+    }
+
+    @Transactional(readOnly = true)
+    public AccessTokenResponse login(LoginRequest req) {
+        User user = userService.authenticate(req.email(), req.password());
         return issueToken(user);
     }
 

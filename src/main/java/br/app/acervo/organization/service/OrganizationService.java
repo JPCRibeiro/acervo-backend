@@ -2,6 +2,7 @@ package br.app.acervo.organization.service;
 
 import br.app.acervo.organization.OrganizationRepository;
 import br.app.acervo.organization.domain.Organization;
+import br.app.acervo.organization.exception.InvalidInviteCodeException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,12 @@ public class OrganizationService {
         return organizationRepository.save(
                 Organization.create(name.trim(), generateUniqueInviteCode())
         );
+    }
+
+    @Transactional(readOnly = true)
+    public Organization getByInviteCode(String inviteCode) {
+        return organizationRepository.findByInviteCode(inviteCode)
+                .orElseThrow(InvalidInviteCodeException::new);
     }
 
     private String generateUniqueInviteCode() {
