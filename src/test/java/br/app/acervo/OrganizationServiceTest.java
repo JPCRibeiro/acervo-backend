@@ -1,6 +1,6 @@
 package br.app.acervo;
 
-import br.app.acervo.organization.OrganizationRepository;
+import br.app.acervo.organization.repository.OrganizationRepository;
 import br.app.acervo.organization.domain.Organization;
 import br.app.acervo.organization.exception.InvalidInviteCodeException;
 import br.app.acervo.organization.service.InviteCodeGenerator;

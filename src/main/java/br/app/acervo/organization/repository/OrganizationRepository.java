@@ -1,4 +1,4 @@
-package br.app.acervo.organization;
+package br.app.acervo.organization.repository;
 
 import br.app.acervo.organization.domain.Organization;
 import org.springframework.data.jpa.repository.JpaRepository;

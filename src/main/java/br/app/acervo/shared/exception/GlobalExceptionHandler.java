@@ -4,6 +4,7 @@ import br.app.acervo.document.exception.DocumentNotFoundException;
 import br.app.acervo.ingestion.exception.IngestionException;
 import br.app.acervo.ingestion.exception.UnsupportedFileTypeException;
 import br.app.acervo.organization.exception.InvalidInviteCodeException;
+import br.app.acervo.organization.exception.OrganizationNotFoundException;
 import br.app.acervo.user.exception.EmailAlreadyExistsException;
 import br.app.acervo.user.exception.InvalidCredentialsException;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IngestionException.class)
     public ResponseEntity<ErrorResponse>  handleIngestion(IngestionException ex) {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    }
+
+    @ExceptionHandler(OrganizationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleOrganizationNotFound(OrganizationNotFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
