@@ -59,7 +59,7 @@ public class RetrievarServiceTest {
 
     @Test
     void returnsEmptyWhenNoDocumentsRetrieved() {
-        assertThat(retrievalService.buildCitations(null)).isEmpty();
+        assertThat(retrievalService.buildCitations(List.of())).isEmpty();
         assertThat(retrievalService.buildCitations(List.of())).isEmpty();
     }
 }
