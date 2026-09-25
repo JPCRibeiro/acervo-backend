@@ -1,10 +1,12 @@
 package br.app.acervo.document.controller;
 
 import br.app.acervo.document.dto.DocumentStatusResponse;
-import br.app.acervo.document.repository.DocumentRepository;
 import br.app.acervo.document.service.DocumentService;
+import br.app.acervo.shared.security.AuthenticatedOrganization;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +21,11 @@ public class DocumentController {
     private final DocumentService service;
 
     @GetMapping("/{id}")
-    public ResponseEntity<DocumentStatusResponse> getStatus(@PathVariable UUID id) {
-        return ResponseEntity.ok(service.getDocumentStatus(id));
+    public ResponseEntity<DocumentStatusResponse> getStatus(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        UUID organizationId = AuthenticatedOrganization.id(jwt);
+        return ResponseEntity.ok(service.getDocumentStatus(id, organizationId));
     }
 }

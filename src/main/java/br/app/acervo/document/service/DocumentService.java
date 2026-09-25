@@ -14,10 +14,11 @@ import java.util.UUID;
 public class DocumentService {
     private final DocumentRepository documentRepository;
 
-    public DocumentStatusResponse getDocumentStatus(UUID id) {
-        Document document = documentRepository.findById(id)
+    public DocumentStatusResponse getDocumentStatus(UUID id, UUID organizationId) {
+        Document document = documentRepository.findByIdAndOrganizationId(id, organizationId)
                 .orElseThrow(DocumentNotFoundException::new);
 
-        return new DocumentStatusResponse(document.getId(), document.getFileName(), document.getStatus(), document.getChunkCount(), document.getFailureReason());
+        return new DocumentStatusResponse(document.getId(), document.getFileName(),
+                document.getStatus(), document.getChunkCount(), document.getFailureReason());
     }
 }
