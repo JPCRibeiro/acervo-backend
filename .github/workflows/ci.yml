@@ -21,5 +21,10 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Generate JWT keys for tests
+        run: |
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out private.pem
+          openssl rsa -in private.pem -pubout -out public.pem
+
       - name: Build and test
         run: ./mvnw -B -ntp verify
