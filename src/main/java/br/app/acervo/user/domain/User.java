@@ -63,6 +63,6 @@ public class User {
         if (role == null) {
             throw new IllegalArgumentException("role é obrigatório");
         }
-        return new User(organizationId, email, passwordHash, role);
+        return new User(organizationId, email, passwordHash, name, role);
     }
 }
