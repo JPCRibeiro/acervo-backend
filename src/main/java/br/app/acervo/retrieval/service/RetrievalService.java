@@ -10,83 +10,78 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
-import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class RetrievalService {
+    private static final int TOP_K = 5;
+    private static final double SIMILARITY_THRESHOLD = 0.2;
+
     private final ChatClient ragChatClient;
     private final VectorStore vectorStore;
     private final StorageService storageService;
 
     private record TempSource(UUID documentId, String fileName, String s3Key) {}
+    private record Prepared(String context, List<SourceCitation> citations) {}
 
     public ChatResponse ask(UUID organizationId, String question) {
-        var qaAdvisor = buildAdvisor(organizationId);
+        Prepared prepared = prepare(organizationId, question);
 
-        var response = ragChatClient
-                .prompt()
-                .advisors(qaAdvisor)
-                .user(question)
+        String answer = ragChatClient.prompt()
+                .user(userSpec(question, prepared.context()))
                 .call()
-                .chatResponse();
+                .content();
 
-        String answer = response.getResult().getOutput().getText();
-
-        List<Document> retrieved = response
-                .getMetadata()
-                .get(QuestionAnswerAdvisor.RETRIEVED_DOCUMENTS);
-
-        return new ChatResponse(answer, buildCitations(retrieved));
+        return new ChatResponse(answer, prepared.citations());
     }
 
     public Flux<ChatStreamResponse> askStream(UUID organizationId, String question) {
+        Prepared prepared = prepare(organizationId, question);
+        AtomicBoolean isFirst = new AtomicBoolean(true);
+
+        return ragChatClient.prompt()
+                .user(userSpec(question, prepared.context()))
+                .stream()
+                .content()
+                .map(token -> new ChatStreamResponse(
+                        token,
+                        isFirst.compareAndSet(true, false) ? prepared.citations() : null
+                ));
+    }
+
+    private Prepared prepare(UUID organizationId, String question) {
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(question)
                 .filterExpression("organizationId == '" + organizationId + "'")
-                .topK(5)
-                .similarityThreshold(0.2)
+                .topK(TOP_K)
+                .similarityThreshold(SIMILARITY_THRESHOLD)
                 .build();
 
         List<Document> retrieved = vectorStore.similaritySearch(searchRequest);
-        List<SourceCitation> citations = buildCitations(retrieved);
 
         String context = retrieved.stream()
                 .map(Document::getText)
                 .collect(Collectors.joining("\n\n"));
 
-        AtomicBoolean isFirst = new AtomicBoolean(true);
-
-        return ragChatClient.prompt()
-                .user(u -> u.text(question + "\n\nContexto dos documentos:\n{context}")
-                        .param("context", context))
-                .stream()
-                .content()
-                .map(token -> new ChatStreamResponse(
-                        token,
-                        isFirst.compareAndSet(true, false) ? citations : null
-                ));
+        return new Prepared(context, buildCitations(retrieved));
     }
 
-    private QuestionAnswerAdvisor buildAdvisor(UUID organizationId) {
-        return QuestionAnswerAdvisor.builder(vectorStore)
-                .searchRequest(SearchRequest.builder()
-                        .filterExpression("organizationId == '" + organizationId + "'")
-                        .topK(5)
-                        .similarityThreshold(0.2)
-                        .build())
-                .build();
+    private Consumer<ChatClient.PromptUserSpec> userSpec(String question, String context) {
+        return u -> u.text("{question}\n\nContexto dos documentos:\n{context}")
+                .param("question", question)
+                .param("context", context);
     }
 
     List<SourceCitation> buildCitations(List<Document> retrieved) {
-        if (retrieved == null || retrieved.isEmpty()) {
+        if (retrieved.isEmpty()) {
             return List.of();
         }
 
@@ -101,8 +96,8 @@ public class RetrievalService {
                             .map(Object::toString)
                             .orElse("unknown");
                     String s3Key = Optional.ofNullable(meta.get("s3Key"))
-                            .map(Object::toString).orElse(null);
-
+                            .map(Object::toString)
+                            .orElse(null);
                     return new TempSource(documentId, fileName, s3Key);
                 })
                 .distinct()
