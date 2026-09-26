@@ -1,5 +1,6 @@
 package br.app.acervo.shared.exception;
 
+import br.app.acervo.auth.exception.InvalidRefreshTokenException;
 import br.app.acervo.document.exception.DocumentNotFoundException;
 import br.app.acervo.ingestion.exception.IngestionException;
 import br.app.acervo.ingestion.exception.UnsupportedFileTypeException;
@@ -63,6 +64,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(InvalidRefreshTokenException e) {
+        return build(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

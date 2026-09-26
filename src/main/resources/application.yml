@@ -41,6 +41,7 @@ spring:
 jwt:
   issuer: acervo-backend
   access-token-ttl: PT1H
+  refresh-token-ttl: P30D
   private-key: ${JWT_PRIVATE_KEY:file:private.pem}
   public-key: ${JWT_PUBLIC_KEY:file:public.pem}
 
