@@ -42,6 +42,10 @@ spring:
     virtual:
       enabled: true
 
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+
 jwt:
   issuer: acervo-backend
   access-token-ttl: PT1H
