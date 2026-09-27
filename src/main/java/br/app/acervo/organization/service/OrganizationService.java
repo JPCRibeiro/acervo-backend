@@ -6,6 +6,7 @@ import br.app.acervo.membership.exception.AlreadyAMemberException;
 import br.app.acervo.membership.service.MembershipService;
 import br.app.acervo.organization.dto.InviteCodeResponse;
 import br.app.acervo.organization.dto.OrganizationResponse;
+import br.app.acervo.organization.exception.DuplicateOrganizationNameException;
 import br.app.acervo.organization.exception.OrganizationNotFoundException;
 import br.app.acervo.organization.repository.OrganizationRepository;
 import br.app.acervo.organization.domain.Organization;
@@ -32,9 +33,18 @@ public class OrganizationService {
 
     @Transactional
     public OrganizationSummary createForUser(UUID userId, String name) {
+        String normalized = name.trim();
+
+        boolean alreadyHasName = membershipService.listOrganizations(userId).stream()
+                .anyMatch(o -> o.name().equalsIgnoreCase(normalized));
+        if (alreadyHasName) {
+            throw new DuplicateOrganizationNameException();
+        }
+
         Organization org = organizationRepository.save(
-                Organization.create(name.trim(), generateUniqueInviteCode()));
+                Organization.create(normalized, generateUniqueInviteCode()));
         membershipService.add(userId, org.getId(), Role.OWNER);
+
         return new OrganizationSummary(org.getId(), org.getName(), Role.OWNER);
     }
 

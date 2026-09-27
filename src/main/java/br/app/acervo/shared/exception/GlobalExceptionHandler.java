@@ -6,6 +6,7 @@ import br.app.acervo.ingestion.exception.IngestionException;
 import br.app.acervo.ingestion.exception.UnsupportedFileTypeException;
 import br.app.acervo.membership.exception.AlreadyAMemberException;
 import br.app.acervo.membership.exception.NotAMemberException;
+import br.app.acervo.organization.exception.DuplicateOrganizationNameException;
 import br.app.acervo.organization.exception.InvalidInviteCodeException;
 import br.app.acervo.organization.exception.OrganizationNotFoundException;
 import br.app.acervo.user.exception.EmailAlreadyExistsException;
@@ -88,6 +89,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotAMemberException.class)
     public ResponseEntity<ErrorResponse> handleNotAMember(NotAMemberException ex) {
         return build(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateOrganizationNameException.class)
+    public ResponseEntity<ErrorResponse> handleDuplicateOrgName(DuplicateOrganizationNameException ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
