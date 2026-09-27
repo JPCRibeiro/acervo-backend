@@ -34,6 +34,13 @@ public class DocumentProcessor {
             List<Document> extracted = new TikaDocumentReader(new ByteArrayResource(fileBytes)).read();
             List<Document> chunks = splitter.split(extracted);
 
+            if (chunks.isEmpty()) {
+                document.fail("Nenhum texto extraível encontrado no documento");
+                documentRepository.save(document);
+                log.warn("Documento {} sem texto extraível (possível PDF escaneado/imagem)", documentId);
+                return;
+            }
+
             chunks.forEach(chunk -> {
                 chunk.getMetadata().put("source", fileName);
                 chunk.getMetadata().put("organizationId", organizationId.toString());

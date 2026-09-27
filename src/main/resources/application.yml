@@ -34,6 +34,10 @@ spring:
         dimensions: 1536
         index-type: HNSW
         distance-type: COSINE_DISTANCE
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
   threads:
     virtual:
       enabled: true
