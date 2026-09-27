@@ -12,9 +12,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -29,7 +27,6 @@ public class RetrievalService {
     private final VectorStore vectorStore;
     private final StorageService storageService;
 
-    private record TempSource(UUID documentId, String fileName, String s3Key) {}
     private record Prepared(String context, List<SourceCitation> citations) {}
 
     public ChatResponse ask(UUID organizationId, String question) {
@@ -85,26 +82,64 @@ public class RetrievalService {
             return List.of();
         }
 
-        return retrieved.stream()
-                .map(doc -> {
-                    var meta = doc.getMetadata();
-                    UUID documentId = Optional.ofNullable(meta.get("documentId"))
-                            .map(Object::toString)
-                            .map(UUID::fromString)
+        Map<UUID, List<Document>> byDocument = retrieved.stream()
+                .filter(doc -> documentId(doc) != null)
+                .collect(Collectors.groupingBy(
+                        this::documentId,
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+
+        return byDocument.entrySet().stream()
+                .map(entry -> {
+                    List<Document> chunks = entry.getValue();
+                    Document first = chunks.getFirst();
+
+                    List<SourceCitation.Snippet> snippets = chunks.stream()
+                            .map(doc -> new SourceCitation.Snippet(doc.getText(), page(doc), score(doc)))
+                            .sorted(Comparator.comparingDouble(SourceCitation.Snippet::score).reversed())
+                            .toList();
+
+                    double topScore = snippets.isEmpty() ? 0.0 : snippets.getFirst().score();
+
+                    String url = Optional.ofNullable(s3Key(first))
+                            .map(storageService::generatePresignedUrl)
                             .orElse(null);
-                    String fileName = Optional.ofNullable(meta.get("source"))
-                            .map(Object::toString)
-                            .orElse("unknown");
-                    String s3Key = Optional.ofNullable(meta.get("s3Key"))
-                            .map(Object::toString)
-                            .orElse(null);
-                    return new TempSource(documentId, fileName, s3Key);
+
+                    return new SourceCitation(entry.getKey(), fileName(first), url, topScore, snippets);
                 })
-                .distinct()
-                .map(temp -> {
-                    String url = (temp.s3Key() != null) ? storageService.generatePresignedUrl(temp.s3Key()) : null;
-                    return new SourceCitation(temp.documentId(), temp.fileName(), url);
-                })
+                .sorted(Comparator.comparingDouble(SourceCitation::topScore).reversed())
                 .toList();
+    }
+
+    private UUID documentId(Document doc) {
+        return Optional.ofNullable(doc.getMetadata().get("documentId"))
+                .map(Object::toString)
+                .map(UUID::fromString)
+                .orElse(null);
+    }
+
+    private String fileName(Document doc) {
+        return Optional.ofNullable(doc.getMetadata().get("source"))
+                .map(Object::toString)
+                .orElse("unknown");
+    }
+
+    private String s3Key(Document doc) {
+        return Optional.ofNullable(doc.getMetadata().get("s3Key"))
+                .map(Object::toString)
+                .orElse(null);
+    }
+
+    private Integer page(Document doc) {
+        return Optional.ofNullable(doc.getMetadata().get("page_number"))
+                .map(Object::toString)
+                .map(Integer::valueOf)
+                .orElse(null);
+    }
+
+    private double score(Document doc) {
+        Double s = doc.getScore();
+        return s != null ? s : 0.0;
     }
 }
