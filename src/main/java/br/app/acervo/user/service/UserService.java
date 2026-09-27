@@ -2,6 +2,7 @@ package br.app.acervo.user.service;
 
 import br.app.acervo.user.domain.Role;
 import br.app.acervo.user.domain.User;
+import br.app.acervo.user.dto.MemberResponse;
 import br.app.acervo.user.exception.EmailAlreadyExistsException;
 import br.app.acervo.user.exception.InvalidCredentialsException;
 import br.app.acervo.user.repository.UserRepository;
@@ -10,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,5 +51,20 @@ public class UserService {
     @Transactional(readOnly = true)
     public Optional<User> findById(UUID id) {
         return userRepository.findById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public MemberResponse getProfile(UUID userId) {
+        return userRepository.findById(userId)
+                .map(u -> new MemberResponse(u.getId(), u.getName(), u.getEmail(), u.getRole()))
+                .orElseThrow(() -> new IllegalStateException("Usuário autenticado não encontrado"));
+    }
+
+    @Transactional(readOnly = true)
+    public List<MemberResponse> listByOrganization(UUID organizationId) {
+        return userRepository.findByOrganizationIdOrderByCreatedAtAsc(organizationId)
+                .stream()
+                .map(u -> new MemberResponse(u.getId(), u.getName(), u.getEmail(), u.getRole()))
+                .toList();
     }
 }

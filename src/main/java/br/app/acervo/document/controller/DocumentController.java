@@ -30,6 +30,7 @@ public class DocumentController {
         UUID organizationId = AuthenticatedOrganization.id(jwt);
         return ResponseEntity.ok(service.getDocumentStatus(id, organizationId));
     }
+
     @GetMapping
     public ResponseEntity<List<DocumentSummaryResponse>> list(@AuthenticationPrincipal Jwt jwt) {
         UUID organizationId = AuthenticatedOrganization.id(jwt);
