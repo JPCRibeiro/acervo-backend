@@ -1,5 +1,9 @@
 package br.app.acervo.organization.service;
 
+import br.app.acervo.membership.domain.Role;
+import br.app.acervo.membership.dto.OrganizationSummary;
+import br.app.acervo.membership.exception.AlreadyAMemberException;
+import br.app.acervo.membership.service.MembershipService;
 import br.app.acervo.organization.dto.InviteCodeResponse;
 import br.app.acervo.organization.dto.OrganizationResponse;
 import br.app.acervo.organization.exception.OrganizationNotFoundException;
@@ -17,6 +21,7 @@ import java.util.UUID;
 public class OrganizationService {
     private final OrganizationRepository organizationRepository;
     private final InviteCodeGenerator inviteCodeGenerator;
+    private final MembershipService membershipService;
 
     @Transactional
     public Organization create(String name) {
@@ -25,10 +30,29 @@ public class OrganizationService {
         );
     }
 
+    @Transactional
+    public OrganizationSummary createForUser(UUID userId, String name) {
+        Organization org = organizationRepository.save(
+                Organization.create(name.trim(), generateUniqueInviteCode()));
+        membershipService.add(userId, org.getId(), Role.OWNER);
+        return new OrganizationSummary(org.getId(), org.getName(), Role.OWNER);
+    }
+
     @Transactional(readOnly = true)
     public Organization getByInviteCode(String inviteCode) {
         return organizationRepository.findByInviteCode(inviteCode)
                 .orElseThrow(InvalidInviteCodeException::new);
+    }
+
+    @Transactional
+    public OrganizationSummary joinByInviteCode(UUID userId, String inviteCode) {
+        Organization org = organizationRepository.findByInviteCode(inviteCode)
+                .orElseThrow(InvalidInviteCodeException::new);
+        if (membershipService.find(userId, org.getId()).isPresent()) {
+            throw new AlreadyAMemberException();
+        }
+        membershipService.add(userId, org.getId(), Role.MEMBER);
+        return new OrganizationSummary(org.getId(), org.getName(), Role.MEMBER);
     }
 
     @Transactional(readOnly = true)

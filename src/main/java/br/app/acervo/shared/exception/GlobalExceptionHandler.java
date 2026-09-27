@@ -4,6 +4,8 @@ import br.app.acervo.auth.exception.InvalidRefreshTokenException;
 import br.app.acervo.document.exception.DocumentNotFoundException;
 import br.app.acervo.ingestion.exception.IngestionException;
 import br.app.acervo.ingestion.exception.UnsupportedFileTypeException;
+import br.app.acervo.membership.exception.AlreadyAMemberException;
+import br.app.acervo.membership.exception.NotAMemberException;
 import br.app.acervo.organization.exception.InvalidInviteCodeException;
 import br.app.acervo.organization.exception.OrganizationNotFoundException;
 import br.app.acervo.user.exception.EmailAlreadyExistsException;
@@ -53,6 +55,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
+    @ExceptionHandler(AlreadyAMemberException.class)
+    public ResponseEntity<ErrorResponse> handleAlreadyMember(AlreadyAMemberException ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     @ExceptionHandler(OrganizationNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleOrganizationNotFound(OrganizationNotFoundException ex) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
@@ -74,8 +81,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidRefreshTokenException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(InvalidRefreshTokenException e) {
-        return build(HttpStatus.UNAUTHORIZED, e.getMessage());
+    public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
+        return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    @ExceptionHandler(NotAMemberException.class)
+    public ResponseEntity<ErrorResponse> handleNotAMember(NotAMemberException ex) {
+        return build(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

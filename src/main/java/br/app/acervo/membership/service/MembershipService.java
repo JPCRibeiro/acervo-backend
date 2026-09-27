@@ -3,6 +3,7 @@ package br.app.acervo.membership.service;
 import br.app.acervo.membership.domain.Membership;
 import br.app.acervo.membership.domain.Role;
 import br.app.acervo.membership.dto.MemberResponse;
+import br.app.acervo.membership.dto.OrganizationSummary;
 import br.app.acervo.membership.repository.MembershipRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -42,5 +43,10 @@ public class MembershipService {
     @Transactional(readOnly = true)
     public List<MemberResponse> listMembers(UUID organizationId) {
         return membershipRepository.findMembersByOrganizationId(organizationId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrganizationSummary> listOrganizations(UUID userId) {
+        return membershipRepository.findOrganizationsByUserId(userId);
     }
 }

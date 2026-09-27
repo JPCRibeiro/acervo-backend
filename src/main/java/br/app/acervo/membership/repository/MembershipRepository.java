@@ -2,6 +2,7 @@ package br.app.acervo.membership.repository;
 
 import br.app.acervo.membership.domain.Membership;
 import br.app.acervo.membership.dto.MemberResponse;
+import br.app.acervo.membership.dto.OrganizationSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +23,12 @@ public interface MembershipRepository extends JpaRepository<Membership, UUID> {
         ORDER BY m.joinedAt
         """)
     List<MemberResponse> findMembersByOrganizationId(@Param("organizationId") UUID organizationId);
+
+    @Query("""
+    SELECT new br.app.acervo.membership.dto.OrganizationSummary(o.id, o.name, m.role)
+    FROM Membership m JOIN Organization o ON m.organizationId = o.id
+    WHERE m.userId = :userId
+    ORDER BY m.joinedAt
+    """)
+    List<OrganizationSummary> findOrganizationsByUserId(@Param("userId") UUID userId);
 }

@@ -5,6 +5,7 @@ import br.app.acervo.auth.dto.LoginRequest;
 import br.app.acervo.auth.dto.RegisterRequest;
 import br.app.acervo.auth.exception.InvalidRefreshTokenException;
 import br.app.acervo.membership.domain.Membership;
+import br.app.acervo.membership.exception.NotAMemberException;
 import br.app.acervo.membership.service.MembershipService;
 import br.app.acervo.organization.domain.Organization;
 import br.app.acervo.organization.service.OrganizationService;
@@ -27,6 +28,7 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
 
     public record AuthResult(String accessToken, String refreshToken, long expiresIn) {}
+    public record AccessOnly(String accessToken, long expiresIn) {}
 
     @Transactional
     public AuthResult register(RegisterRequest req) {
@@ -75,6 +77,18 @@ public class AuthService {
     @Transactional
     public void logout(String rawRefreshToken) {
         refreshTokenService.revokeAllByRawToken(rawRefreshToken);
+    }
+
+    @Transactional
+    public AccessOnly switchOrganization(UUID userId, UUID targetOrganizationId) {
+        User user = userService.findById(userId)
+                .orElseThrow(() -> new IllegalStateException("Usuário autenticado não encontrado"));
+        Membership membership = membershipService.find(userId, targetOrganizationId)
+                .orElseThrow(NotAMemberException::new);
+        membershipService.touchAccess(membership);
+
+        String accessToken = tokenService.issue(user, membership);
+        return new AccessOnly(accessToken, tokenService.getExpiresInSeconds());
     }
 
     private AuthResult issueTokens(User user, Membership membership) {

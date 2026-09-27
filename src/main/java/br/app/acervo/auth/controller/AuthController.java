@@ -3,6 +3,7 @@ package br.app.acervo.auth.controller;
 import br.app.acervo.auth.dto.*;
 import br.app.acervo.auth.exception.InvalidRefreshTokenException;
 import br.app.acervo.auth.service.AuthService;
+import br.app.acervo.shared.security.AuthenticatedUser;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +11,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -56,6 +59,15 @@ public class AuthController {
         return ResponseEntity.noContent()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie("", Duration.ZERO).toString())
                 .build();
+    }
+
+    @PostMapping("/switch-organization")
+    public ResponseEntity<AccessTokenResponse> switchOrganization(
+            @AuthenticationPrincipal Jwt jwt,
+            @Valid @RequestBody SwitchOrganizationRequest req) {
+        UUID userId = AuthenticatedUser.id(jwt);
+        AuthService.AccessOnly result = service.switchOrganization(userId, req.organizationId());
+        return ResponseEntity.ok(AccessTokenResponse.bearer(result.accessToken(), result.expiresIn()));
     }
 
     private ResponseEntity<AccessTokenResponse> authResponse(
