@@ -32,6 +32,9 @@ public class Document {
     @Column(nullable = false)
     private DocumentStatus status;
 
+    @Column(name = "file_size_bytes", nullable = false, updatable = false)
+    private long fileSizeBytes;
+
     @Column(name = "chunk_count", nullable = false)
     private int chunkCount;
 
@@ -41,16 +44,17 @@ public class Document {
     @Column(name = "uploaded_at", nullable = false, updatable = false)
     private Instant uploadedAt;
 
-    private Document(UUID organizationId, String fileName, String s3Key) {
+    private Document(UUID organizationId, String fileName, String s3Key, long fileSizeBytes) {
         this.organizationId = organizationId;
         this.fileName = fileName;
         this.s3Key = s3Key;
+        this.fileSizeBytes = fileSizeBytes;
         this.status = DocumentStatus.PENDING;
         this.chunkCount = 0;
         this.uploadedAt = Instant.now();
     }
 
-    public static Document create(UUID organizationId, String fileName, String s3Key) {
+    public static Document create(UUID organizationId, String fileName, String s3Key, long fileSizeBytes) {
         if (organizationId == null) {
             throw new IllegalArgumentException("organizationId é obrigatório");
         }
@@ -60,7 +64,7 @@ public class Document {
         if (s3Key == null || s3Key.isBlank()) {
             throw new IllegalArgumentException("s3Key é obrigatória");
         }
-        return new Document(organizationId, fileName, s3Key);
+        return new Document(organizationId, fileName, s3Key, fileSizeBytes);
     }
 
     public void startProcessing() {

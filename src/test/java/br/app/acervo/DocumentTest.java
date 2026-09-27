@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class DocumentTest {
     private Document pendingDocument() {
-        return Document.create(UUID.randomUUID(), "file.pdf", "organization/file.pdf");
+        return Document.create(UUID.randomUUID(), "file.pdf", "organization/file.pdf", 1024L);
     }
 
     @Test
@@ -23,11 +23,11 @@ public class DocumentTest {
 
     @Test
     void shouldRejectInvalidDocument() {
-        assertThatThrownBy(() -> Document.create(null, "f.pdf", "k"))
+        assertThatThrownBy(() -> Document.create(null, "f.pdf", "k", 1024L))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> Document.create(UUID.randomUUID(), " ", "k"))
+        assertThatThrownBy(() -> Document.create(UUID.randomUUID(), " ", "k", 1024L))
                 .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> Document.create(UUID.randomUUID(), "f.pdf", " "))
+        assertThatThrownBy(() -> Document.create(UUID.randomUUID(), "f.pdf", " ", 1024L))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 

@@ -30,7 +30,7 @@ public class DocumentProcessorTest {
     DocumentProcessor documentProcessor;
 
     private br.app.acervo.document.domain.Document pendingDocument(UUID id, UUID organizationId) {
-        var doc = br.app.acervo.document.domain.Document.create(organizationId, "notas.txt", "fake-s3-key");
+        var doc = br.app.acervo.document.domain.Document.create(organizationId, "notas.txt", "fake-s3-key", 1024L);
         ReflectionTestUtils.setField(doc, "id", id);
         return doc;
     }
