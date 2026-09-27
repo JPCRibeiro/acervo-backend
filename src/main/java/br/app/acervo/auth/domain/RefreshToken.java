@@ -1,9 +1,6 @@
 package br.app.acervo.auth.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class RefreshToken {
     @Id
+    @GeneratedValue
     @UuidGenerator(style = UuidGenerator.Style.VERSION_7)
     private UUID id;
 

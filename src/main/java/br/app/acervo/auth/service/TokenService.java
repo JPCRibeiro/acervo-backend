@@ -1,5 +1,6 @@
 package br.app.acervo.auth.service;
 
+import br.app.acervo.membership.domain.Membership;
 import br.app.acervo.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +23,7 @@ public class TokenService {
     @Value("${jwt.access-token-ttl}")
     private Duration accessTokenTtl;
 
-    public String issue(User user) {
+    public String issue(User user, Membership membership) {
         Instant now = Instant.now();
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
@@ -30,8 +31,8 @@ public class TokenService {
                 .issuedAt(now)
                 .expiresAt(now.plus(accessTokenTtl))
                 .subject(user.getId().toString())
-                .claim("organizationId", user.getOrganizationId().toString())
-                .claim("role", user.getRole().name())
+                .claim("organizationId", membership.getOrganizationId().toString())
+                .claim("role", membership.getRole().name())
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();

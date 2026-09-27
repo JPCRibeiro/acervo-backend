@@ -1,6 +1,5 @@
 package br.app.acervo;
 
-import br.app.acervo.user.domain.Role;
 import br.app.acervo.user.domain.User;
 import br.app.acervo.user.exception.EmailAlreadyExistsException;
 import br.app.acervo.user.exception.InvalidCredentialsException;
@@ -14,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,7 +38,7 @@ public class UserServiceTest {
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
         User result = userService.create(
-                UUID.randomUUID(), "  USER@Acme.com ", "secret123", "João", Role.OWNER);
+                "  USER@Acme.com ", "secret123", "João");
 
         assertThat(result.getEmail()).isEqualTo("user@acme.com");
         assertThat(result.getPasswordHash()).isEqualTo("hashed");
@@ -52,7 +50,7 @@ public class UserServiceTest {
         when(userRepository.existsByEmail("user@acme.com")).thenReturn(true);
 
         assertThatThrownBy(() -> userService.create(
-                UUID.randomUUID(), "user@acme.com", "secret123", "João", Role.OWNER))
+                "user@acme.com", "secret123", "João"))
                 .isInstanceOf(EmailAlreadyExistsException.class);
 
         verify(userRepository, never()).save(any());
@@ -60,7 +58,7 @@ public class UserServiceTest {
 
     @Test
     void shouldAuthenticateWithValidCredentials() {
-        User user = User.create(UUID.randomUUID(), "user@acme.com", "hashed", "João", Role.OWNER);
+        User user = User.create("user@acme.com", "hashed", "João");
         when(userRepository.findByEmail("user@acme.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("secret123", "hashed")).thenReturn(true);
 
@@ -77,7 +75,7 @@ public class UserServiceTest {
 
     @Test
     void shouldRejectAuthenticationWhenPasswordDoesNotMatch() {
-        User user = User.create(UUID.randomUUID(), "user@acme.com", "hashed", "João", Role.OWNER);
+        User user = User.create("user@acme.com", "hashed", "João");
         when(userRepository.findByEmail("user@acme.com")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("wrong", "hashed")).thenReturn(false);
 

@@ -1,4 +1,4 @@
-package br.app.acervo.user.domain;
+package br.app.acervo.membership.domain;
 
 public enum Role {
     OWNER,

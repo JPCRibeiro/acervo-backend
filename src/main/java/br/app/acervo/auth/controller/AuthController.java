@@ -1,9 +1,6 @@
 package br.app.acervo.auth.controller;
 
-import br.app.acervo.auth.dto.AccessTokenResponse;
-import br.app.acervo.auth.dto.JoinRequest;
-import br.app.acervo.auth.dto.LoginRequest;
-import br.app.acervo.auth.dto.RegisterRequest;
+import br.app.acervo.auth.dto.*;
 import br.app.acervo.auth.exception.InvalidRefreshTokenException;
 import br.app.acervo.auth.service.AuthService;
 import jakarta.validation.Valid;
@@ -16,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -44,9 +42,11 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<AccessTokenResponse> refresh(
-            @CookieValue(name = REFRESH_COOKIE, required = false) String refreshToken) {
+            @CookieValue(name = REFRESH_COOKIE, required = false) String refreshToken,
+            @RequestBody(required = false) RefreshRequest body) {
         if (refreshToken == null) throw new InvalidRefreshTokenException();
-        return authResponse(service.refresh(refreshToken), HttpStatus.OK);
+        UUID requestedOrg = (body != null) ? body.organizationId() : null;
+        return authResponse(service.refresh(refreshToken, requestedOrg), HttpStatus.OK);
     }
 
     @PostMapping("/logout")
@@ -58,7 +58,10 @@ public class AuthController {
                 .build();
     }
 
-    private ResponseEntity<AccessTokenResponse> authResponse(AuthService.AuthResult result, HttpStatus status) {
+    private ResponseEntity<AccessTokenResponse> authResponse(
+            AuthService.AuthResult result,
+            HttpStatus status
+    ) {
         ResponseCookie cookie = refreshCookie(result.refreshToken(), refreshTtl);
         return ResponseEntity.status(status)
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
