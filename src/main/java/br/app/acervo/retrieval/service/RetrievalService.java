@@ -53,6 +53,7 @@ public class RetrievalService {
                 .stream()
                 .content()
                 .map(token -> new ChatStreamResponse(
+                        null,
                         token,
                         isFirst.compareAndSet(true, false) ? prepared.citations() : null
                 ));

@@ -63,6 +63,42 @@ public class ConversationService {
                 messageResponses);
     }
 
+    @Transactional
+    public UUID start(UUID organizationId, UUID userId, String question) {
+        Conversation conversation = Conversation.create(organizationId, userId, deriveTitle(question));
+        conversationRepository.save(conversation);
+        Message userMessage = conversation.addUserMessage(question);
+        messageRepository.save(userMessage);
+        return conversation.getId();
+    }
+
+    @Transactional
+    public UUID appendUserMessage(UUID conversationId, UUID organizationId, UUID userId, String content) {
+        Conversation conversation = conversationRepository
+                .findByIdAndOrganizationIdAndUserId(conversationId, organizationId, userId)
+                .orElseThrow(ConversationNotFoundException::new);
+        Message userMessage = conversation.addUserMessage(content);
+        messageRepository.save(userMessage);
+        return conversation.getId();
+    }
+
+    @Transactional
+    public void appendAssistantMessage(UUID conversationId, String content, List<MessageCitation> sources) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(ConversationNotFoundException::new);
+        Message assistantMessage = conversation.addAssistantMessage(content, sources);
+        messageRepository.save(assistantMessage);
+    }
+
+    private String deriveTitle(String question) {
+        String q = question == null ? "" : question.strip();
+        if (q.isEmpty()) {
+            return "Nova conversa";
+        }
+        String firstLine = q.lines().findFirst().orElse(q).strip();
+        return firstLine.length() > 60 ? firstLine.substring(0, 60).strip() + "…" : firstLine;
+    }
+
     private Map<UUID, String> resolvePresignableKeys(UUID organizationId, List<Message> messages) {
         Set<UUID> documentIds = messages.stream()
                 .map(Message::getSources)
@@ -101,4 +137,6 @@ public class ConversationService {
     private String presign(String s3Key) {
         return s3Key == null ? null : storageService.generatePresignedUrl(s3Key);
     }
+
+
 }
