@@ -5,6 +5,7 @@ import br.app.acervo.conversation.service.ConversationService;
 import br.app.acervo.retrieval.dto.ChatStreamResponse;
 import br.app.acervo.retrieval.dto.SourceCitation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -15,6 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -55,7 +57,12 @@ public class ChatService {
                 })
                 .subscribeOn(Schedulers.boundedElastic());
 
-        return tokens.concatWith(persist);
+        return tokens
+                .concatWith(persist)
+                .onErrorResume(e -> {
+                    log.warn("Stream de chat encerrado por erro: {}", e.toString());
+                    return Flux.empty();
+                });
     }
 
     private List<MessageCitation> toMessageCitations(List<SourceCitation> sources) {

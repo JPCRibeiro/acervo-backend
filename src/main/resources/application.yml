@@ -59,3 +59,7 @@ aws:
     access-key: ${S3_ACCESS_KEY:test-key}
     secret-key: ${S3_SECRET_KEY:test-secret}
     bucket-name: ${S3_BUCKET_NAME:test-bucket}
+
+logging:
+  level:
+    org.springframework.ai.chat.model.MessageAggregator: "off"
