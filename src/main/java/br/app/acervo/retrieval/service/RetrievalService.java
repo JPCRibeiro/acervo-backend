@@ -1,5 +1,8 @@
 package br.app.acervo.retrieval.service;
 
+import br.app.acervo.document.domain.DocumentStatus;
+import br.app.acervo.document.dto.DocumentSummaryResponse;
+import br.app.acervo.document.service.DocumentService;
 import br.app.acervo.ingestion.service.StorageService;
 import br.app.acervo.retrieval.dto.ChatResponse;
 import br.app.acervo.retrieval.dto.ChatStreamResponse;
@@ -26,14 +29,15 @@ public class RetrievalService {
     private final ChatClient ragChatClient;
     private final VectorStore vectorStore;
     private final StorageService storageService;
+    private final DocumentService documentService;
 
-    private record Prepared(String context, List<SourceCitation> citations) {}
+    private record Prepared(String inventory, String context, List<SourceCitation> citations) {}
 
     public ChatResponse ask(UUID organizationId, String question) {
         Prepared prepared = prepare(organizationId, question);
 
         String answer = ragChatClient.prompt()
-                .user(userSpec(question, prepared.context()))
+                .user(userSpec(question, prepared.inventory(), prepared.context()))
                 .call()
                 .content();
 
@@ -45,7 +49,7 @@ public class RetrievalService {
         AtomicBoolean isFirst = new AtomicBoolean(true);
 
         return ragChatClient.prompt()
-                .user(userSpec(question, prepared.context()))
+                .user(userSpec(question, prepared.inventory(), prepared.context()))
                 .stream()
                 .content()
                 .map(token -> new ChatStreamResponse(
@@ -65,15 +69,43 @@ public class RetrievalService {
         List<Document> retrieved = vectorStore.similaritySearch(searchRequest);
 
         String context = retrieved.stream()
-                .map(Document::getText)
+                .map(doc -> "[" + fileName(doc) + "] " + doc.getText())
                 .collect(Collectors.joining("\n\n"));
 
-        return new Prepared(context, buildCitations(retrieved));
+        return new Prepared(buildInventory(organizationId), context, buildCitations(retrieved));
     }
 
-    private Consumer<ChatClient.PromptUserSpec> userSpec(String question, String context) {
-        return u -> u.text("{question}\n\nContexto dos documentos:\n{context}")
+    private String buildInventory(UUID organizationId) {
+        List<DocumentSummaryResponse> docs = documentService.listByOrganization(organizationId);
+        if (docs.isEmpty()) {
+            return "INVENTÁRIO DE DOCUMENTOS: (nenhum documento disponível)";
+        }
+        String list = docs.stream()
+                .map(d -> "- " + d.fileName() + " (" + statusLabel(d.status()) + ")")
+                .collect(Collectors.joining("\n"));
+        return "INVENTÁRIO DE DOCUMENTOS (" + docs.size() + "):\n" + list;
+    }
+
+    private String statusLabel(DocumentStatus status) {
+        return switch (status) {
+            case READY -> "pronto";
+            case PROCESSING -> "processando";
+            case PENDING -> "na fila";
+            case FAILED -> "falhou";
+        };
+    }
+
+    private Consumer<ChatClient.PromptUserSpec> userSpec(String question, String inventory, String context) {
+        return u -> u.text("""
+                Pergunta: {question}
+
+                {inventory}
+
+                TRECHOS RELEVANTES DOS DOCUMENTOS:
+                {context}
+                """)
                 .param("question", question)
+                .param("inventory", inventory)
                 .param("context", context);
     }
 
