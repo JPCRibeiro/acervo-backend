@@ -3,7 +3,6 @@ package br.app.acervo.retrieval.service;
 import br.app.acervo.document.domain.DocumentStatus;
 import br.app.acervo.document.dto.DocumentSummaryResponse;
 import br.app.acervo.document.service.DocumentService;
-import br.app.acervo.ingestion.service.StorageService;
 import br.app.acervo.retrieval.dto.ChatStreamResponse;
 import br.app.acervo.retrieval.dto.SourceCitation;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +27,6 @@ public class RetrievalService {
 
     private final ChatClient ragChatClient;
     private final VectorStore vectorStore;
-    private final StorageService storageService;
     private final DocumentService documentService;
 
     private record Prepared(String inventory, String context, List<SourceCitation> citations) {}
@@ -121,11 +119,7 @@ public class RetrievalService {
 
                     double topScore = snippets.isEmpty() ? 0.0 : snippets.getFirst().score();
 
-                    String url = Optional.ofNullable(s3Key(first))
-                            .map(storageService::generatePresignedUrl)
-                            .orElse(null);
-
-                    return new SourceCitation(entry.getKey(), fileName(first), url, topScore, snippets);
+                    return new SourceCitation(entry.getKey(), fileName(first), topScore, snippets);
                 })
                 .sorted(Comparator.comparingDouble(SourceCitation::topScore).reversed())
                 .toList();
@@ -152,12 +146,6 @@ public class RetrievalService {
         return Optional.ofNullable(doc.getMetadata().get("source"))
                 .map(Object::toString)
                 .orElse("unknown");
-    }
-
-    private String s3Key(Document doc) {
-        return Optional.ofNullable(doc.getMetadata().get("s3Key"))
-                .map(Object::toString)
-                .orElse(null);
     }
 
     private Integer page(Document doc) {

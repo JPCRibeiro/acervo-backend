@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -29,6 +30,15 @@ public class DocumentController {
     ) {
         UUID organizationId = AuthenticatedOrganization.id(jwt);
         return ResponseEntity.ok(service.getDocumentStatus(id, organizationId));
+    }
+
+    @GetMapping("/{id}/url")
+    public ResponseEntity<Map<String, String>> getUrl(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        UUID organizationId = AuthenticatedOrganization.id(jwt);
+        return ResponseEntity.ok(Map.of("url", service.getPresignedUrl(id, organizationId)));
     }
 
     @GetMapping

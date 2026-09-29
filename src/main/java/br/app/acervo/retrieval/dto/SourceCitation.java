@@ -6,7 +6,6 @@ import java.util.UUID;
 public record SourceCitation(
         UUID documentId,
         String fileName,
-        String url,
         double topScore,
         List<Snippet> snippets
 ) {
