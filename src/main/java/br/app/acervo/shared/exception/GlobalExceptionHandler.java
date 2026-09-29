@@ -1,6 +1,7 @@
 package br.app.acervo.shared.exception;
 
 import br.app.acervo.auth.exception.InvalidRefreshTokenException;
+import br.app.acervo.conversation.exception.ConversationNotFoundException;
 import br.app.acervo.document.exception.DocumentNotFoundException;
 import br.app.acervo.ingestion.exception.IngestionException;
 import br.app.acervo.ingestion.exception.UnsupportedFileTypeException;
@@ -94,6 +95,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateOrganizationNameException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateOrgName(DuplicateOrganizationNameException ex) {
         return build(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(ConversationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleConversationNotFound(ConversationNotFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
