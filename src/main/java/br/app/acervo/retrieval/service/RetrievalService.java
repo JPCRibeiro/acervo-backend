@@ -4,7 +4,6 @@ import br.app.acervo.document.domain.DocumentStatus;
 import br.app.acervo.document.dto.DocumentSummaryResponse;
 import br.app.acervo.document.service.DocumentService;
 import br.app.acervo.ingestion.service.StorageService;
-import br.app.acervo.retrieval.dto.ChatResponse;
 import br.app.acervo.retrieval.dto.ChatStreamResponse;
 import br.app.acervo.retrieval.dto.SourceCitation;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +23,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RetrievalService {
     private static final int TOP_K = 5;
-    private static final double SIMILARITY_THRESHOLD = 0.2;
+    private static final double SIMILARITY_THRESHOLD = 0.3;
+    private static final double CITATION_MIN_SCORE = 0.45;
 
     private final ChatClient ragChatClient;
     private final VectorStore vectorStore;
@@ -32,17 +32,6 @@ public class RetrievalService {
     private final DocumentService documentService;
 
     private record Prepared(String inventory, String context, List<SourceCitation> citations) {}
-
-    public ChatResponse ask(UUID organizationId, String question) {
-        Prepared prepared = prepare(organizationId, question);
-
-        String answer = ragChatClient.prompt()
-                .user(userSpec(question, prepared.inventory(), prepared.context()))
-                .call()
-                .content();
-
-        return new ChatResponse(answer, prepared.citations());
-    }
 
     public Flux<ChatStreamResponse> askStream(UUID organizationId, String question) {
         Prepared prepared = prepare(organizationId, question);
@@ -60,6 +49,8 @@ public class RetrievalService {
     }
 
     private Prepared prepare(UUID organizationId, String question) {
+        List<DocumentSummaryResponse> docs = documentService.listByOrganization(organizationId);
+
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(question)
                 .filterExpression("organizationId == '" + organizationId + "'")
@@ -73,11 +64,10 @@ public class RetrievalService {
                 .map(doc -> "[" + fileName(doc) + "] " + doc.getText())
                 .collect(Collectors.joining("\n\n"));
 
-        return new Prepared(buildInventory(organizationId), context, buildCitations(retrieved));
+        return new Prepared(buildInventory(docs), context, buildCitations(retrieved));
     }
 
-    private String buildInventory(UUID organizationId) {
-        List<DocumentSummaryResponse> docs = documentService.listByOrganization(organizationId);
+    private String buildInventory(List<DocumentSummaryResponse> docs) {
         if (docs.isEmpty()) {
             return "INVENTÁRIO DE DOCUMENTOS: (nenhum documento disponível)";
         }
@@ -111,10 +101,6 @@ public class RetrievalService {
     }
 
     List<SourceCitation> buildCitations(List<Document> retrieved) {
-        if (retrieved.isEmpty()) {
-            return List.of();
-        }
-
         Map<UUID, List<Document>> byDocument = retrieved.stream()
                 .filter(doc -> documentId(doc) != null)
                 .collect(Collectors.groupingBy(
@@ -123,7 +109,7 @@ public class RetrievalService {
                         Collectors.toList()
                 ));
 
-        return byDocument.entrySet().stream()
+        List<SourceCitation> citations = byDocument.entrySet().stream()
                 .map(entry -> {
                     List<Document> chunks = entry.getValue();
                     Document first = chunks.getFirst();
@@ -143,6 +129,16 @@ public class RetrievalService {
                 })
                 .sorted(Comparator.comparingDouble(SourceCitation::topScore).reversed())
                 .toList();
+
+        if (citations.isEmpty()) {
+            return citations;
+        }
+
+        List<SourceCitation> strong = citations.stream()
+                .filter(c -> c.topScore() >= CITATION_MIN_SCORE)
+                .toList();
+
+        return strong.isEmpty() ? List.of(citations.getFirst()) : strong;
     }
 
     private UUID documentId(Document doc) {
