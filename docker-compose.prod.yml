@@ -7,7 +7,7 @@ services:
     env_file:
       - acervo.env
     environment:
-      JAVA_TOOL_OPTIONS: "-XX:+UseSerialGC -Xms256m -Xmx384m -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:+UseSerialGC -Xms256m -Xmx384m -XX:MaxMetaspaceSize=256m"
     volumes:
       - ./app.key:/keys/app.key:ro
       - ./app.pub:/keys/app.pub:ro
