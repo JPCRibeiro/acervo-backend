@@ -1,9 +1,11 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="src/assets/logo.png">
-    <img src="src/assets/logo-black.png" alt="Acervo" width="180">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo-white.png">
+    <img src="docs/logo-black.png" alt="Acervo" width="240">
   </picture>
 </p>
+
+<br />
 
 <p align="center">
   API de perguntas e respostas sobre documentos (RAG) com suporte a múltiplas organizações. O usuário envia PDFs e outros arquivos, o sistema indexa o conteúdo e responde perguntas citando de quais documentos cada resposta veio.
