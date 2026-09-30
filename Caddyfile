@@ -1,0 +1,3 @@
+api.acervo.jpcribeiro.dev.br {
+    reverse_proxy api:8080
+}

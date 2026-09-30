@@ -1,0 +1,30 @@
+services:
+  api:
+    image: jpcribeiro21/acervo-backend:latest
+    restart: unless-stopped
+    expose:
+      - "8080"
+    env_file:
+      - acervo.env
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:+UseSerialGC -Xms256m -Xmx384m -XX:MaxMetaspaceSize=128m"
+    volumes:
+      - ./app.key:/keys/app.key:ro
+      - ./app.pub:/keys/app.pub:ro
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  caddy_data:
+  caddy_config:
